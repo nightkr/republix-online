@@ -69,4 +69,14 @@ case class Law(model: Model, name: String) extends Node {
 	override val causes: Map[Node, Effect] = Map()
 }
 
-case class Event(model: Model, name: String, causes: Map[Node, Effect], startTrigger: Intensity, stopTrigger: Intensity) extends Node
+case class Event(model: Model, name: String, causes: Map[Node, Effect], startTrigger: Intensity, stopTrigger: Intensity) extends Node {
+	override val baseState: NodeState = NodeState(0, active = false)
+
+	override def active(previous: NodeState, intensity: Intensity): Boolean = {
+		intensity match {
+			case x if x > startTrigger => true
+			case x if x < stopTrigger => false
+			case _ => previous.active
+		}
+	}
+}
