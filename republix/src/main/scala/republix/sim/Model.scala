@@ -10,6 +10,7 @@ sealed trait Effect
 
 sealed trait Node {
 	val model: Model
+	val name: String
 	val causes: Map[Node, Effect]
 
 	lazy val effects: Map[Node, Effect] = (for {
@@ -23,10 +24,10 @@ object Node {
 	type Intensity = Int
 }
 
-case class Status(model: Model, causes: Map[Node, Effect]) extends Node
+case class Status(model: Model, name: String, causes: Map[Node, Effect]) extends Node
 
-case class Law(model: Model) extends Node {
+case class Law(model: Model, name: String) extends Node {
 	override val causes: Map[Node, Effect] = Map()
 }
 
-case class Event(model: Model, causes: Map[Node, Effect], startTrigger: Intensity, stopTrigger: Intensity) extends Node
+case class Event(model: Model, name: String, causes: Map[Node, Effect], startTrigger: Intensity, stopTrigger: Intensity) extends Node
