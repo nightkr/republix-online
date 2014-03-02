@@ -7,13 +7,12 @@ trait RepublixNav {
 	def closeOption(): Unit
 
 }
-class RepublixUI extends JComponent { outer =>
+class RepublixUI extends JPanel { outer =>
 
 	val screens = Seq(Exit)
 	var currentScreen: Option[JComponent] = None
 
-	object TitleScreen extends JComponent {
-		debug(this)
+	object TitleScreen extends JPanel {
 		for (screen <- screens) {
 			add(new OptionButton(screen))
 		}
@@ -28,8 +27,6 @@ class RepublixUI extends JComponent { outer =>
 		}
 	}
 	class OptionButton(opt: RepublixScreen) extends JButton {
-		debug(this)
-
 		setText(opt.name)
 		addActionListener(on {
 			outer.remove(TitleScreen)
