@@ -27,8 +27,6 @@ trait Model {
 
 sealed trait Effect {
 	def apply(cause: Intensity): Intensity
-
-	final def andThen(other: Effect): Effect = ComposedEffect(this, other)
 }
 
 case class LinearEffect(coefficient: Int) extends Effect {
@@ -66,7 +64,7 @@ sealed trait Node {
 case class NodeState(intensity: Intensity, active: Boolean)
 
 object Node {
-	type Intensity = Int
+	type Intensity = Double
 }
 
 case class Status(model: Model, name: String, causes: Map[Node, Effect]) extends Node
