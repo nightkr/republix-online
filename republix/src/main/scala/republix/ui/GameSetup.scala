@@ -23,6 +23,7 @@ import javax.swing._
 
 class GameSetup(parent: RepublixNav) extends JPanel {
 
+	private val portLabel = new JLabel("Port:")
 	object Port extends JTextField {
 
 	}
@@ -37,10 +38,22 @@ class GameSetup(parent: RepublixNav) extends JPanel {
 		})
 	}
 
-	layoutify(this)
-	place(this, new JLabel("Port:"), 0, 0)
-	place(this, Port, 1, 0)
-	place(this, Cancel, 0, 1)
-	place(this, Ok, 1, 1)
+	private val l = groupLayout(this)
+
+	setLayout(l)
+
+	l.setVerticalGroup(
+		l.createSequentialGroup().
+			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
+				addComponent(portLabel).addComponent(Port)).
+			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
+				addComponent(Cancel).addComponent(Ok)))
+
+	l.setHorizontalGroup(
+		l.createSequentialGroup().
+			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
+				addComponent(portLabel).addComponent(Cancel)).
+			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
+				addComponent(Port).addComponent(Ok)))
 
 }

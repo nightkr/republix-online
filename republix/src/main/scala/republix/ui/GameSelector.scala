@@ -23,10 +23,12 @@ import javax.swing._
 
 class GameSelector(parent: RepublixNav) extends JPanel {
 
-	object IP extends JTextField {
+	private val addressLabel = new JLabel("Address:")
+	object Address extends JTextField {
 		setMinimumSize(getPreferredSize)
 	}
 
+	private val portLabel = new JLabel("Port:")
 	object Port extends JTextField {
 		setMinimumSize(getPreferredSize)
 	}
@@ -41,11 +43,24 @@ class GameSelector(parent: RepublixNav) extends JPanel {
 		})
 	}
 
-	layoutify(this)
-	place(this, new JLabel("Ip Address:"), 0, 0)
-	place(this, IP, 1, 0)
-	place(this, new JLabel("Port:"), 0, 1)
-	place(this, Port, 1, 1)
-	place(this, Cancel, 0, 2)
-	place(this, Ok, 1, 2)
+	private val l = groupLayout(this)
+
+	setLayout(l)
+
+	l.setVerticalGroup(
+		l.createSequentialGroup().
+			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
+				addComponent(addressLabel).addComponent(Address)).
+			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
+				addComponent(portLabel).addComponent(Port)).
+			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
+				addComponent(Cancel).addComponent(Ok)))
+
+	l.setHorizontalGroup(
+		l.createSequentialGroup().
+			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
+				addComponent(addressLabel).addComponent(portLabel).addComponent(Cancel)).
+			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
+				addComponent(Address).addComponent(Port).addComponent(Ok)))
+
 }
