@@ -27,6 +27,16 @@ trait Model {
 
 sealed trait Effect {
 	def apply(cause: Intensity): Intensity
+
+	final def andThen(other: Effect): Effect = ComposedEffect(this, other)
+}
+
+case class LinearEffect(coefficient: Int) extends Effect {
+	override def apply(cause: Intensity): Intensity = cause * coefficient
+}
+
+case class ComposedEffect(one: Effect, two: Effect) extends Effect {
+	override def apply(cause: Intensity): Intensity = two(one(cause))
 }
 
 sealed trait Node {
