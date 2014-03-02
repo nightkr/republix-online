@@ -4,3 +4,7 @@ scala:
 jdk:
   - oraclejdk7
   - openjdk7
+cache:
+    directories:
+      - $HOME/.ivy2/cache
+      - $HOME/.sbt/boot
