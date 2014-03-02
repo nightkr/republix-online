@@ -7,4 +7,5 @@ object RepublixBuild extends Build {
 	)
 
 	lazy val republix = Project("republix", file("republix"))
+	lazy val root = Project("root", file(".")).aggregate(republix)
 }
