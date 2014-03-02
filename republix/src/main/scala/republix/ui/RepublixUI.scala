@@ -61,13 +61,13 @@ object RepublixScreen {
 	object Host extends RepublixScreen {
 		def name = "Host"
 		def choose(parent: RepublixNav) = {
-			parent.switchTo(new Lobby())
+			parent.switchTo(new GameSetup(parent))
 		}
 	}
 	object Join extends RepublixScreen {
 		def name = "Join"
 		def choose(parent: RepublixNav) = {
-			parent.switchTo(new Lobby())
+			parent.switchTo(new GameSelector(parent))
 		}
 	}
 	object Exit extends RepublixScreen {
