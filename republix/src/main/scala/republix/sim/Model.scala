@@ -35,10 +35,6 @@ case class LinearEffect(coefficient: Int) extends Effect {
 	override def apply(cause: Intensity): Intensity = cause * coefficient
 }
 
-case class ComposedEffect(one: Effect, two: Effect) extends Effect {
-	override def apply(cause: Intensity): Intensity = two(one(cause))
-}
-
 sealed trait Node {
 	val model: Model
 	val name: String

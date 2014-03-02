@@ -23,6 +23,11 @@ import javax.swing._
 
 class GameSetup(parent: RepublixNav) extends JPanel {
 
+	private val partyLabel = new JLabel("Party Name:")
+	object Party extends JTextField {
+		
+	}
+
 	private val portLabel = new JLabel("Port:")
 	object Port extends JTextField {
 
@@ -45,6 +50,8 @@ class GameSetup(parent: RepublixNav) extends JPanel {
 	l.setVerticalGroup(
 		l.createSequentialGroup().
 			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
+				addComponent(partyLabel).addComponent(Party)).
+			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
 				addComponent(portLabel).addComponent(Port)).
 			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
 				addComponent(Cancel).addComponent(Ok)))
@@ -52,8 +59,8 @@ class GameSetup(parent: RepublixNav) extends JPanel {
 	l.setHorizontalGroup(
 		l.createSequentialGroup().
 			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
-				addComponent(portLabel).addComponent(Cancel)).
+				addComponent(partyLabel).addComponent(portLabel).addComponent(Cancel)).
 			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
-				addComponent(Port).addComponent(Ok)))
+				addComponent(Party).addComponent(Port).addComponent(Ok)))
 
 }

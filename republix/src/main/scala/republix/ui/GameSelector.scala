@@ -23,18 +23,28 @@ import javax.swing._
 
 class GameSelector(parent: RepublixNav) extends JPanel {
 
+	private val partyLabel = new JLabel("Party Name:")
+	object Party extends JTextField {
+		
+	}
+
 	private val addressLabel = new JLabel("Address:")
 	object Address extends JTextField {
-		setMinimumSize(getPreferredSize)
+		
 	}
 
 	private val portLabel = new JLabel("Port:")
 	object Port extends JTextField {
-		setMinimumSize(getPreferredSize)
+		
 	}
 
 	object Ok extends JButton("Ok") {
-
+		addActionListener(on {
+			import akka.actor.{ Props, Deploy, Address => A, AddressFromURIString }
+			import akka.remote.RemoteScope
+			import akka.pattern.ask
+			val address = A("akka.tcp", "sys", Address.getText, Port.getText.toInt)
+		})
 	}
 
 	object Cancel extends JButton("Cancel") {
@@ -50,6 +60,8 @@ class GameSelector(parent: RepublixNav) extends JPanel {
 	l.setVerticalGroup(
 		l.createSequentialGroup().
 			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
+				addComponent(partyLabel).addComponent(Party)).
+			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
 				addComponent(addressLabel).addComponent(Address)).
 			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
 				addComponent(portLabel).addComponent(Port)).
@@ -59,8 +71,8 @@ class GameSelector(parent: RepublixNav) extends JPanel {
 	l.setHorizontalGroup(
 		l.createSequentialGroup().
 			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
-				addComponent(addressLabel).addComponent(portLabel).addComponent(Cancel)).
+				addComponent(partyLabel).addComponent(addressLabel).addComponent(portLabel).addComponent(Cancel)).
 			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
-				addComponent(Address).addComponent(Port).addComponent(Ok)))
+				addComponent(Party).addComponent(Address).addComponent(Port).addComponent(Ok)))
 
 }
