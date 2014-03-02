@@ -26,5 +26,7 @@ object RepublixBuild extends Build {
 	)
 
 	lazy val republix = Project("republix", file("republix"))
-	lazy val root = Project("root", file(".")).aggregate(republix)
+	lazy val root = Project("root", file(".")).settings(
+		mainClass in Compile <<= mainClass in(republix, Compile)
+	).dependsOn(republix).aggregate(republix)
 }
