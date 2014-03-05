@@ -20,13 +20,20 @@
 package republix.sim
 
 trait Model {
-	val nodes: Seq[Node]
+	type Node
+	val links: Map[(Node, Node), Link]
+
+	def causes(node: Node): Map[Node, Link] =
+		links.collect { case ((cause, effect), link) if node == effect => (cause, link) }
+	def effects(node: Node): Map[Node, Link] =
+		links.collect { case ((cause, effect), link) if node == cause => (effect, link) }
+
+	def compute(node: Node, state: Map[Node, NodeState]): NodeState =
+		NodeState(Value(causes(node).map { case (cause, link) => link(state(cause).intensity).value}.sum))
 }
 object Model {
-
 	def valueToIntensity(intensity: Double) = 1/(1+math.exp(-intensity))
 	def intensityToValue(value: Double) = math.log(value/(1-value))
-
 }
 
 class Intensity(val intensity: Double) extends AnyVal {
@@ -41,53 +48,20 @@ object Value {
 	def unapply(intensity: Intensity): Option[Double] = Some(intensity.value)
 }
 
-sealed trait Effect {
+sealed trait Link {
 	def apply(cause: Intensity): Intensity
 }
 
-case class LinearEffect(coefficient: Double) extends Effect {
-	override def apply(cause: Intensity): Intensity = Value(cause.intensity * coefficient)
+case class LogisticLink(coefficient: Double, offset: Double) extends Link {
+	override def apply(cause: Intensity): Intensity = Value(cause.intensity * coefficient + offset)
+}
+case class LinearLink(coefficient: Double, offset: Double) extends Link {
+	override def apply(cause: Intensity): Intensity = Value(cause.value * coefficient + offset)
+}
+case class DiscontinuousLink(trigger: Intensity, neutral: Intensity, active: Intensity) extends Link {
+	override def apply(cause: Intensity): Intensity =
+		if (trigger.value > cause.value) neutral
+		else active
 }
 
-sealed trait Node {
-	val model: Model
-	val name: String
-	val causes: Map[Node, Effect]
-
-	lazy val effects: Map[Node, Effect] = (for {
-		node <- model.nodes
-		(otherNode, effect) <- node.causes
-		if otherNode == this
-	} yield (node, effect)).toMap
-
-	private def intensity(previous: NodeState, causeIntensities: Map[Node, Intensity]): Intensity =
-		Value(causeIntensities.map {
-			case (node, intensity) => causes(node)(intensity).value
-		}.sum)
-
-	def active(previous: NodeState, intensity: Intensity): Boolean = previous.active
-
-	def tick(previous: NodeState, causeStates: Map[Node, NodeState]): NodeState = {
-		val intensity = this.intensity(previous, causeStates.filter(_._2.active).mapValues(_.intensity))
-		val active = this.active(previous, intensity)
-		NodeState(intensity, active)
-	}
-}
-
-case class NodeState(intensity: Intensity, active: Boolean)
-
-case class Status(model: Model, name: String, causes: Map[Node, Effect]) extends Node
-
-case class Law(model: Model, name: String) extends Node {
-	override val causes: Map[Node, Effect] = Map()
-}
-
-case class Event(model: Model, name: String, causes: Map[Node, Effect], startTrigger: Intensity, stopTrigger: Intensity) extends Node {
-	override def active(previous: NodeState, intensity: Intensity): Boolean = {
-		intensity match {
-			case x if x.intensity > startTrigger.intensity => true
-			case x if x.intensity < stopTrigger.intensity => false
-			case _ => previous.active
-		}
-	}
-}
+case class NodeState(intensity: Intensity)
