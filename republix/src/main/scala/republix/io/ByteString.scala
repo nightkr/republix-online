@@ -24,6 +24,7 @@ object ByteString {
 	def apply(str: String): ByteString = ByteString(str.getBytes(UTF8).toVector)
 	def apply(i: Int): ByteString = ByteString(Vector(3, 2, 1, 0).map(x => ((i >> x) & 0xFF).toByte))
 	def apply(l: Long): ByteString = ByteString(Vector(7, 6, 5, 4, 3, 2, 1, 0).map(x => ((l >> x) & 0xFF).toByte))
+	def apply(bytes: Array[Byte]): ByteString = ByteString(bytes.toVector)
 	def apply(): ByteString = ByteString(Vector())
 
 }
