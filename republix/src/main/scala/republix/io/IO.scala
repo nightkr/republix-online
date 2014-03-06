@@ -54,7 +54,7 @@ package object io {
 				}
 			}
 		}.start
-		generator(queue.add _)
+		reset { generator(queue.add _) }
 		new In[A] {
 			def setReceive(f: A => Unit): Unit = { listeners.add(f) }
 			def close(): Unit = { open = false; toClose() }
