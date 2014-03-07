@@ -19,5 +19,22 @@ object Net {
 			produce((fromInputStream(socket.getInputStream), fromOutputStream(socket.getOutputStream)))
 		}
 	}
+
+	// todo: find better place for this
+	def read[A](in: In[ByteString])(implicit serial: Serial[A]): In[A] = generate(in.close _) { produce =>
+		var current = ByteString()
+		while (true) {
+			current = current ++ in.get()
+			serial.deserialize(current) match {
+				case Some(x, rest) =>
+					current = rest
+					produce(x)
+				case None =>
+					// todo: needs a way to check if deserialization encountered error or just needs more info
+			}
+		}
+	}
+	def write[A](out: Out[ByteString])(implicit serial: Serial[A]): Out[A] =
+		out.comap(serial.serialize _)
 	
 }

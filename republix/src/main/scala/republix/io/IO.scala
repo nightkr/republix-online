@@ -5,7 +5,7 @@ import java.io._
 
 package object io {
 
-	trait In[+A] {
+	trait In[+A] { self =>
 
 		// will build up backlog if not called
 		def setReceive(f: A => Unit): Unit
@@ -17,15 +17,27 @@ package object io {
 		}
 		def get(): A @cps[Unit] = shift(setReceive _)
 
+		def map[B](f: A => B): In[B] = new In[B] {
+			def setReceive(g: B => Unit) = self.setReceive(f andThen g)
+			def close() = self.close()
+		}
+
 	}
 
-	trait Out[-A] {
+	trait Out[-A] { self =>
 
 		def backlog: Int
 
 		//non-blocking
 		def send(x: A): Unit
 		def close(): Unit
+
+		def comap[B](f: B => A): Out[B] = new Out[B] {
+			def backlog = self.backlog
+			def send(x: B) = self.send(f(x))
+			def close() = self.close()
+		}
+
 	}
 
 	def generate[A](toClose: () => Unit)(generator: (A => Unit) => Unit @cps[Unit]): In[A] = {
