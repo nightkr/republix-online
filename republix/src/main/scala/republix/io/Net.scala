@@ -26,7 +26,7 @@ object Net {
 		while (true) {
 			current = current ++ in.get()
 			serial.deserialize(current) match {
-				case Some(x, rest) =>
+				case Some((x, rest)) =>
 					current = rest
 					produce(x)
 				case None =>
