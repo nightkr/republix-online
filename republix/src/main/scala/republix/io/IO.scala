@@ -20,7 +20,6 @@
 package republix
 
 import java.io._
-import util.continuations._
 
 package object io {
 
@@ -34,7 +33,6 @@ package object io {
 			f(x)
 			listen(f)
 		}
-		def get(): A @cps[Unit] = shift(setReceive _)
 
 		def map[B](f: A => B): In[B] = new In[B] {
 			def setReceive(g: B => Unit) = self.setReceive(f andThen g)

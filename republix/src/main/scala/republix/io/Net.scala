@@ -20,7 +20,6 @@
 package republix.io
 
 import java.net._
-import util.continuations._
 
 object Net {
 
@@ -41,10 +40,10 @@ object Net {
 	}
 
 	// todo: find better place for this
-	def read[A](in: In[ByteString])(implicit serial: Serial[A]): In[A] = generate(in.close _) { produce => reset {
+	def read[A](in: In[ByteString])(implicit serial: Serial[A]): In[A] = generate(in.close _) { produce =>
 		var current = ByteString()
-		while (true) {
-			current = current ++ in.get()
+		in.listen { elem =>
+			current = current ++ elem
 			serial.deserialize(current) match {
 				case Some((x, rest)) =>
 					current = rest
@@ -53,7 +52,7 @@ object Net {
 					// todo: needs a way to check if deserialization encountered error or just needs more info
 			}
 		}
-	}}
+	}
 	def write[A](out: Out[ByteString])(implicit serial: Serial[A]): Out[A] =
 		out.comap(serial.serialize _)
 	
