@@ -24,7 +24,7 @@ import javax.swing._
 class GameSetup(parent: RepublixNav) extends JPanel {
 
 	private val partyLabel = new JLabel("Party Name:")
-	object Party extends JTextField {
+	object Party extends JTextField(20) {
 		
 	}
 
@@ -42,6 +42,9 @@ class GameSetup(parent: RepublixNav) extends JPanel {
 				(Net.read[Command](in), Net.write[Update](out))
 			}
 			val game = new Game(players)
+			Lobby.join("localhost", Port.getText.toInt, Party.getText).setReceive { lobby =>
+				parent.switchTo(lobby)
+			}
 		})
 	}
 

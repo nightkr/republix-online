@@ -19,10 +19,25 @@
 
 package republix.ui
 
+import republix.game._
+import republix.io._
 import javax.swing._
 
-class Lobby extends JPanel {
+class Lobby(player: (In[Update], Out[Command]), party: String) extends JPanel {
 
 	add(new JLabel("Lobby"))
+
+	player._2.send(Intro(party))
+
+}
+object Lobby {
+
+	def join(address: String, port: Int, party: String): In[Lobby] = {
+		val conn = Net.connect(address, port)
+		val player = conn.map { case (in, out) =>
+			(Net.read[Update](in), Net.write[Command](out))
+		}
+		player.map(p => new Lobby(p, party))
+	}
 
 }
