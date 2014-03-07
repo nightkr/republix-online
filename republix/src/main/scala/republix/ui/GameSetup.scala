@@ -34,7 +34,15 @@ class GameSetup(parent: RepublixNav) extends JPanel {
 	}
 
 	object Ok extends JButton("Ok") {
-
+		addActionListener(on {
+			import republix.io._
+			import republix.game._
+			val conn = Net.host(Port.getText.toInt)
+			val players = conn.map { case (in, out) =>
+				(Net.read[Command](in), Net.write[Update](out))
+			}
+			val game = new Game(players)
+		})
 	}
 
 	object Cancel extends JButton("Cancel") {

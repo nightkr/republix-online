@@ -40,10 +40,6 @@ class GameSelector(parent: RepublixNav) extends JPanel {
 
 	object Ok extends JButton("Ok") {
 		addActionListener(on {
-			import akka.actor.{ Props, Deploy, Address => A, AddressFromURIString }
-			import akka.remote.RemoteScope
-			import akka.pattern.ask
-			val address = A("akka.tcp", "sys", Address.getText, Port.getText.toInt)
 		})
 	}
 
