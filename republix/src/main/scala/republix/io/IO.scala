@@ -29,32 +29,18 @@ package object io {
 	}
 
 	def generate[A](toClose: () => Unit)(generator: (A => Unit) => Unit @cps[Unit]): In[A] = {
-		val queue = new java.util.concurrent.LinkedBlockingQueue[A]
 		val listeners = new java.util.concurrent.LinkedBlockingQueue[A => Unit]
-		var open = true
-		new Thread { // todo: do stuff without spamming threads
-			override def run() = {
-				try {
-					while (open) {
-						val listen = listeners.poll(1, java.util.concurrent.TimeUnit.SECONDS)
-						if (listen ne null) {
-							var done = false
-							while (!done && open) {
-								val elem = queue.poll(1, java.util.concurrent.TimeUnit.SECONDS)
-								if (elem.asInstanceOf[AnyRef] ne null) {
-									listen(elem)
-								}
-							}
-						}
+		@volatile var open = true
+		reset {
+			generator { x =>
+				while (open) {
+					val listen = listeners.poll(1, java.util.concurrent.TimeUnit.SECONDS)
+					if (listen ne null) {
+						listen(x)
 					}
 				}
-				catch {
-					case ex: IOException =>
-						ex.printStackTrace
-				}
 			}
-		}.start
-		reset { generator(queue.add _) }
+		}
 		new In[A] {
 			def setReceive(f: A => Unit): Unit = { listeners.add(f) }
 			def close(): Unit = { open = false; toClose() }
@@ -92,7 +78,7 @@ package object io {
 	}
 	def fromOutputStream(os: OutputStream): Out[ByteString] = {
 		val queue = new java.util.concurrent.LinkedBlockingQueue[ByteString]
-		var open = true
+		@volatile var open = true
 		new Thread {
 			override def run() = {
 				try {
