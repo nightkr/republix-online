@@ -19,8 +19,8 @@
 
 package republix
 
-import util.continuations._
 import java.io._
+import util.continuations._
 
 package object io {
 
@@ -59,16 +59,14 @@ package object io {
 
 	}
 
-	def generate[A](toClose: () => Unit)(generator: (A => Unit) => Unit @cps[Unit]): In[A] = {
+	def generate[A](toClose: () => Unit)(generator: (A => Unit) => Unit): In[A] = {
 		val listeners = new java.util.concurrent.LinkedBlockingQueue[A => Unit]
 		@volatile var open = true
-		reset {
-			generator { x =>
-				while (open) {
-					val listen = listeners.poll(1, java.util.concurrent.TimeUnit.SECONDS)
-					if (listen ne null) {
-						listen(x)
-					}
+		generator { x =>
+			while (open) {
+				val listen = listeners.poll(1, java.util.concurrent.TimeUnit.SECONDS)
+				if (listen ne null) {
+					listen(x)
 				}
 			}
 		}
@@ -77,7 +75,7 @@ package object io {
 			def close(): Unit = { open = false; toClose() }
 		}
 	}
-	def generateIO[A](toClose: () => Unit)(generator: (A => Unit) => Unit @cps[Unit]): In[A] = {
+	def generateIO[A](toClose: () => Unit)(generator: (A => Unit) => Unit): In[A] = {
 		generate(() =>
 			try { toClose() }
 				catch {
