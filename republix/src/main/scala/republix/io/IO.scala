@@ -61,10 +61,12 @@ package object io {
 		val listeners = new java.util.concurrent.LinkedBlockingQueue[A => Unit]
 		@volatile var open = true
 		generator { x =>
-			while (open) {
+			var done = false
+			while (!done && open) {
 				val listen = listeners.poll(1, java.util.concurrent.TimeUnit.SECONDS)
 				if (listen ne null) {
 					listen(x)
+					done = true
 				}
 			}
 		}

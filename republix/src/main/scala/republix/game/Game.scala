@@ -47,7 +47,7 @@ package object game {
 			println("Player attempting to connect.")
 			newPlayer._1.setReceive {
 				case Intro(party) =>
-					println("Intro received. $party connecting.")
+					println(s"Intro received. $party connecting.")
 					atomically {
 						players.foreach { other =>
 							other._2.send(NewParty(party))
@@ -58,7 +58,7 @@ package object game {
 						newPlayer._1.listen(playerListener(Party(party)))
 					}
 				case _ =>
-					println("$party is breaking protocol. Kicking.")
+					println("Player is breaking protocol. Kicking.")
 					newPlayer._2.close
 			}
 		}
