@@ -24,12 +24,12 @@ import javax.swing._
 class GameSetup(parent: RepublixNav) extends JPanel {
 
 	private val partyLabel = new JLabel("Party Name:")
-	object Party extends JTextField(20) {
+	object PartyField extends JTextField(20) {
 		
 	}
 
 	private val portLabel = new JLabel("Port:")
-	object Port extends JTextField {
+	object PortField extends JTextField {
 
 	}
 
@@ -37,13 +37,13 @@ class GameSetup(parent: RepublixNav) extends JPanel {
 		addActionListener(on {
 			import republix.io._
 			import republix.game._
-			val conn = Net.host(Port.getText.toInt)
+			val conn = Net.host(PortField.getText.toInt)
 			val players = conn.map { case (in, out) =>
 				(Net.read[Command](in), Net.write[Update](out))
 			}
 			val game = new Game(players)
-			Lobby.join("localhost", Port.getText.toInt, Party.getText).setReceive { lobby =>
-				parent.switchTo(lobby)
+			Lobby.join("localhost", PortField.getText.toInt).setReceive { player =>
+				new Client(player, PartyField.getText, parent).start()
 			}
 		})
 	}
@@ -61,9 +61,9 @@ class GameSetup(parent: RepublixNav) extends JPanel {
 	l.setVerticalGroup(
 		l.createSequentialGroup().
 			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
-				addComponent(partyLabel).addComponent(Party)).
+				addComponent(partyLabel).addComponent(PartyField)).
 			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
-				addComponent(portLabel).addComponent(Port)).
+				addComponent(portLabel).addComponent(PortField)).
 			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
 				addComponent(Cancel).addComponent(Ok)))
 
@@ -72,6 +72,6 @@ class GameSetup(parent: RepublixNav) extends JPanel {
 			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
 				addComponent(partyLabel).addComponent(portLabel).addComponent(Cancel)).
 			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
-				addComponent(Party).addComponent(Port).addComponent(Ok)))
+				addComponent(PartyField).addComponent(PortField).addComponent(Ok)))
 
 }

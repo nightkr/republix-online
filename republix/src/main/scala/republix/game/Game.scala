@@ -1,77 +1,57 @@
-package republix
+package republix.game
 
-import republix.sim._
 import republix.io._
+import republix.sim._
 
-package object game {
+class Game(clients: In[(In[Command], Out[Update])]) {
 
-	import shapeless._
-	// client -> game
-	sealed trait Command
-	case class Intro(party: String) extends Command
-	case class SendChat(chat: String) extends Command
+	object model extends Model {
+		type Node = String
+		val links: Map[(Node, Node), Link] = Map()
+		val serialized = IntroModel("YAY!")
+	}
 
-	// game -> client
-	sealed trait Update
-	case class NewParty(party: String) extends Update
-	case class IntroModel(todo: String) extends Update
-	case class Chat(chat: String) extends Update
+	// todo: somehow freeze once games starts
+	var players: Map[Party, Out[Update]] = Map()
 
-	// todo: find a better place for these
-	implicit val serialCommand: Serial[Command] = TypeClass[Serial, Command]
-	implicit val serialUpdate: Serial[Update] = TypeClass[Serial, Update]
+	import java.util.concurrent.{Executors, ExecutorService}
+	val pool: ExecutorService = Executors.newFixedThreadPool(1)
+	def atomically(body: => Unit): Unit = {
+		pool.execute(new Runnable {
+			def run() = body
+		})
+	}
 
-	class Game(clients: In[(In[Command], Out[Update])]) {
-
-		// todo: use an id instead of name
-		case class Party(name: String)
-
-		object model extends Model {
-			type Node = String
-			val links: Map[(Node, Node), Link] = Map()
-			val serialized = IntroModel("YAY!")
-		}
-
-		// todo: somehow freeze once games starts
-		var players: Map[Party, Out[Update]] = Map()
-
-		import java.util.concurrent.{Executors, ExecutorService}
-		val pool: ExecutorService = Executors.newFixedThreadPool(1)
-		def atomically(body: => Unit): Unit = {
-			pool.execute(new Runnable {
-				def run() = body
-			})
-		}
-
-		clients.listen { newPlayer =>
-			println("Player attempting to connect.")
-			newPlayer._1.setReceive {
-				case Intro(party) =>
-					println(s"Intro received. $party connecting.")
-					atomically {
-						players.foreach { other =>
-							other._2.send(NewParty(party))
-							newPlayer._2.send(NewParty(other._1.name))
-						}
-						players += Party(party) -> newPlayer._2
-						newPlayer._2.send(model.serialized)
-						newPlayer._1.listen(playerListener(Party(party)))
+	clients.listen { newPlayer =>
+		println("Player attempting to connect.")
+		newPlayer._1.setReceive {
+			case Intro(partyName) =>
+				println(s"Intro received. $partyName connecting.")
+				atomically {
+					val party = Party(partyName)
+					players.foreach { other =>
+						other._2.send(NewParty(party))
+						newPlayer._2.send(NewParty(other._1))
 					}
-				case _ =>
-					println("Player is breaking protocol. Kicking.")
-					newPlayer._2.close
-			}
-		}
-
-		def playerListener(party: Party): Command => Unit = (message: Command) => message match {
-			case SendChat(chat: String) =>
-				players.foreach { player =>
-					player._2.send(Chat(party.name + ": " + chat))
+					players += party -> newPlayer._2
+					newPlayer._2.send(model.serialized)
+					newPlayer._2.send(YouAre(party))
+					newPlayer._2.send(SwitchPhase(LobbyPhase()))
+					newPlayer._1.listen(playerListener(party))
 				}
 			case _ =>
-				players(party).close
+				println("Player is breaking protocol. Kicking.")
+				newPlayer._2.close
 		}
+	}
 
+	def playerListener(party: Party): Command => Unit = (message: Command) => message match {
+		case SendChat(chat: String) =>
+			players.foreach { player =>
+				player._2.send(Chat(party.name + ": " + chat))
+			}
+		case _ =>
+			players(party).close
 	}
 
 }

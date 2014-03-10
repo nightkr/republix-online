@@ -48,8 +48,8 @@ case object Serial extends TypeClassCompanion[Serial] {
 		}
 		def coproduct[L, R <: Coproduct](cHead: => Serial[L], cTail: => Serial[R]) = new Serial[L :+: R] {
 			def serialize(x: L :+: R) = x match {
-				case Inl(l) => ByteString(0) ++ cHead.serialize(l)
-				case Inr(r) => ByteString(1) ++ cTail.serialize(r)
+				case Inl(l) => ByteString(0.toByte) ++ cHead.serialize(l)
+				case Inr(r) => ByteString(1.toByte) ++ cTail.serialize(r)
 			}
 			def deserialize(bs: ByteString) = for {
 				(head, tail) <- bs.extract

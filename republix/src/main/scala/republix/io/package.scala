@@ -57,10 +57,10 @@ package object io {
 
 	}
 
-	def generate[A](toClose: () => Unit)(generator: (A => Unit) => Unit): In[A] = {
+	def makeIn[A](toClose: () => Unit): (In[A], A => Unit) = {
 		val listeners = new java.util.concurrent.LinkedBlockingQueue[A => Unit]
 		@volatile var open = true
-		generator { x =>
+		def produce(x: A) = {
 			var done = false
 			while (!done && open) {
 				val listen = listeners.poll(1, java.util.concurrent.TimeUnit.SECONDS)
@@ -70,10 +70,15 @@ package object io {
 				}
 			}
 		}
-		new In[A] {
+		(new In[A] {
 			def setReceive(f: A => Unit): Unit = { listeners.add(f) }
 			def close(): Unit = { open = false; toClose() }
-		}
+		}, produce _)
+	}
+	def generate[A](toClose: () => Unit)(generator: (A => Unit) => Unit): In[A] = {
+		val (in, produce) = makeIn[A](toClose)
+		generator(produce)
+		in
 	}
 	def generateIO[A](toClose: () => Unit)(generator: (A => Unit) => Unit): In[A] = {
 		generate(() =>

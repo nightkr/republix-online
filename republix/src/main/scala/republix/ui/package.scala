@@ -38,4 +38,8 @@ package object ui {
 		layout
 	}
 
+	def swing(body: => Unit) = SwingUtilities.invokeLater (new Runnable { def run() = {
+		body
+	}})
+
 }

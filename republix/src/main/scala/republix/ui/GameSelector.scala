@@ -24,24 +24,24 @@ import javax.swing._
 class GameSelector(parent: RepublixNav) extends JPanel {
 
 	private val partyLabel = new JLabel("Party Name:")
-	object Party extends JTextField(20) {
+	object PartyField extends JTextField(20) {
 		
 	}
 
 	private val addressLabel = new JLabel("Address:")
-	object Address extends JTextField {
+	object AddressField extends JTextField {
 		
 	}
 
 	private val portLabel = new JLabel("Port:")
-	object Port extends JTextField {
+	object PortField extends JTextField {
 		
 	}
 
 	object Ok extends JButton("Ok") {
 		addActionListener(on {
-			Lobby.join(Address.getText, Port.getText.toInt, Party.getText).setReceive { lobby =>
-				parent.switchTo(lobby)
+			Lobby.join(AddressField.getText, PortField.getText.toInt).setReceive { player =>
+				new Client(player, PartyField.getText, parent).start()
 			}
 		})
 	}
@@ -59,11 +59,11 @@ class GameSelector(parent: RepublixNav) extends JPanel {
 	l.setVerticalGroup(
 		l.createSequentialGroup().
 			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
-				addComponent(partyLabel).addComponent(Party)).
+				addComponent(partyLabel).addComponent(PartyField)).
 			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
-				addComponent(addressLabel).addComponent(Address)).
+				addComponent(addressLabel).addComponent(AddressField)).
 			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
-				addComponent(portLabel).addComponent(Port)).
+				addComponent(portLabel).addComponent(PortField)).
 			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
 				addComponent(Cancel).addComponent(Ok)))
 
@@ -72,6 +72,6 @@ class GameSelector(parent: RepublixNav) extends JPanel {
 			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
 				addComponent(partyLabel).addComponent(addressLabel).addComponent(portLabel).addComponent(Cancel)).
 			addGroup(l.createParallelGroup(GroupLayout.Alignment.LEADING).
-				addComponent(Party).addComponent(Address).addComponent(Port).addComponent(Ok)))
+				addComponent(PartyField).addComponent(AddressField).addComponent(PortField).addComponent(Ok)))
 
 }

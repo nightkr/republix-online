@@ -44,12 +44,15 @@ object Net {
 		var current = ByteString()
 		in.listen { elem =>
 			current = current ++ elem
-			serial.deserialize(current) match {
-				case Some((x, rest)) =>
-					current = rest
-					produce(x)
-				case None =>
-					// todo: needs a way to check if deserialization encountered error or just needs more info
+			var done = false
+			while (!done) {
+				serial.deserialize(current) match {
+					case Some((x, rest)) =>
+						current = rest
+						produce(x)
+					case None =>
+						done = true
+				}
 			}
 		}
 	}
