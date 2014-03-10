@@ -17,17 +17,24 @@
  * along with Republix.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import sbt._
-import Keys._
+package republix.game
 
-object RepublixBuild extends Build {
-	override def settings: Seq[Def.Setting[_]] = super.settings ++ Seq(
-		scalaVersion := "2.10.3"
-	)
+import republix.sim._
+import republix.io._
 
-	lazy val republix = Project("republix", file("republix"))
-	lazy val root = Project("root", file(".")).settings(
-		mainClass in Compile <<= mainClass in(republix, Compile)
-	).dependsOn(republix).aggregate(republix)
-	
+case class GameModel(val links: Map[(GameNode, GameNode), Link]) extends Model {
+	type Node = GameNode
 }
+case class GameNode(name: String)
+case class GameState(intensities: Map[GameNode, Intensity])
+
+trait SimPhase {
+
+	def sim(model: GameModel, players: Vector[Party], updates: In[(Party, PhaseCommand)],
+			state: GameState, feedback: SimEffect => Unit): Unit
+
+}
+
+sealed trait SimEffect
+case class SwitchSimPhase(phase: GamePhase) extends SimEffect
+case object LockGame extends SimEffect // prevents people from joining

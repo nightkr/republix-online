@@ -94,4 +94,27 @@ case object Serial extends TypeClassCompanion[Serial] {
 		serialInstance.project(longSerial,
 			java.lang.Double.doubleToRawLongBits _,
 			java.lang.Double.longBitsToDouble _)
+	implicit def vectorSerial[A](implicit serial: Serial[A]): Serial[Vector[A]] = new Serial[Vector[A]] {
+		def serialize(vec: Vector[A]) = {
+			val res = vec.map(serial.serialize _).fold(ByteString())(_ ++ _)
+			ByteString(res.length) ++ res
+		}
+		def deserialize(bs1: ByteString) = for {
+			(len, bs2) <- intSerial.deserialize(bs1)
+			x <- (0 until len).foldLeft[Option[(Vector[A], ByteString)]](Some((Vector(), bs2))) ((partial, n) => for {
+				(vec, bs3) <- partial
+				(elem, bs4) <- serial.deserialize(bs3)
+			} yield (vec :+ elem, bs4))
+		} yield x
+	}
+	implicit def tupleSerial[A, B](implicit aSerial: Serial[A], bSerial: Serial[B]): Serial[(A, B)] = TypeClass[Serial, (A, B)]
+	private case class Pair[A, B](x: A, y: B) {
+		def this(pair: (A, B)) = this(pair._1, pair._2)
+		def tuple = (x, y)
+	}
+	private implicit def serialPair[A, B](implicit aSerial: Serial[A], bSerial: Serial[B]): Serial[Pair[A, B]] = TypeClass[Serial, Pair[A, B]]
+	implicit def mapSerial[A, B](implicit aSerial: Serial[A], bSerial: Serial[B]): Serial[Map[A, B]] =
+		serialInstance.project(vectorSerial[Pair[A, B]],
+			(m: Map[A, B]) => m.toVector.map(p => new Pair(p)),
+			(v: Vector[Pair[A, B]]) => v.map(_.tuple).toMap)
 }

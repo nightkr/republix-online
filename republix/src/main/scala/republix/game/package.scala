@@ -27,17 +27,19 @@ package object game {
 	import shapeless._
 	// client -> game
 	sealed trait Command
+	sealed trait PhaseCommand extends Command
 	case class Intro(party: String) extends Command
 	case class SendChat(chat: String) extends Command
+	case class ModifyLaw(todo: String) extends PhaseCommand
 
 	// game -> client
 	sealed trait Update
 	sealed trait GenericUpdate extends Update
 	sealed trait PhaseUpdate extends Update
 	case class YouAre(party: Party) extends GenericUpdate
-	case class IntroModel(todo: String) extends GenericUpdate
+	case class IntroModel(model: GameModel) extends GenericUpdate
 	case class Chat(chat: String) extends GenericUpdate
-	case class SwitchPhase(newPhase: GamePhase) extends GenericUpdate
+	case class SwitchPhase(newPhase: GamePhase, state: GameState) extends GenericUpdate
 	case class NewParty(party: Party) extends PhaseUpdate
 
 	// case classes because it works better with shapeless
@@ -51,6 +53,15 @@ package object game {
 	// todo: use id along with name
 	case class Party(name: String)
 
+	import Serial._
+	implicit val serialIntensity: Serial[Intensity] =
+		serialInstance.project(doubleSerial,
+			(x: Intensity) => x.intensity,
+			Intensity.apply _)
+	implicit val serialLink: Serial[Link] = TypeClass[Serial, Link]
+	implicit val serialNode: Serial[GameNode] = TypeClass[Serial, GameNode]
+	implicit val serialState: Serial[GameState] = TypeClass[Serial, GameState]
+	implicit val serialModel: Serial[GameModel] = TypeClass[Serial, GameModel]
 	implicit val serialParty: Serial[Party] = TypeClass[Serial, Party]
 	implicit val serialPhase: Serial[GamePhase] = TypeClass[Serial, GamePhase]
 	implicit val serialCommand: Serial[Command] = TypeClass[Serial, Command]

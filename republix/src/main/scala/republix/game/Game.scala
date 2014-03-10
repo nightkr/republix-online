@@ -24,14 +24,16 @@ import republix.sim._
 
 class Game(clients: In[(In[Command], Out[Update])]) {
 
-	object model extends Model {
-		type Node = String
-		val links: Map[(Node, Node), Link] = Map()
-		val serialized = IntroModel("YAY!")
-	}
+	val model = GameModel(Map())
 
 	// todo: somehow freeze once games starts
 	var players: Map[Party, Out[Update]] = Map()
+	var phaseCommands: (Party, PhaseCommand) => Unit = (x, y) => {}
+	var phase: GamePhase = _
+	switchPhase(LobbyPhase())
+	var state = GameState(Map())
+
+	val phaseMap: Map[GamePhase, SimPhase] = Map(LobbyPhase() -> SimLobby)
 
 	import java.util.concurrent.{Executors, ExecutorService}
 	val pool: ExecutorService = Executors.newFixedThreadPool(1)
@@ -53,9 +55,9 @@ class Game(clients: In[(In[Command], Out[Update])]) {
 						newPlayer._2.send(NewParty(other._1))
 					}
 					players += party -> newPlayer._2
-					newPlayer._2.send(model.serialized)
+					newPlayer._2.send(IntroModel(model))
 					newPlayer._2.send(YouAre(party))
-					newPlayer._2.send(SwitchPhase(LobbyPhase()))
+					newPlayer._2.send(SwitchPhase(LobbyPhase(), state))
 					newPlayer._1.listen(playerListener(party))
 				}
 			case _ =>
@@ -64,11 +66,29 @@ class Game(clients: In[(In[Command], Out[Update])]) {
 		}
 	}
 
+	def switchPhase(newPhase: GamePhase): Unit = {
+		phase = newPhase
+		val (updates, produce) = makeIn[(Party, PhaseCommand)](() => {})
+		phaseCommands = (party, command) => produce((party, command))
+		players.foreach { player =>
+			player._2.send(SwitchPhase(phase, state))
+		}
+		phaseMap(phase).sim(model, players.keys.toVector, updates, state, feedback _)
+	}
+	def feedback(effect: SimEffect) = effect match {
+		case SwitchSimPhase(newPhase) =>
+			switchPhase(newPhase)
+		case LockGame =>
+			clients.close
+	}
+
 	def playerListener(party: Party): Command => Unit = (message: Command) => message match {
 		case SendChat(chat: String) =>
 			players.foreach { player =>
 				player._2.send(Chat(party.name + ": " + chat))
 			}
+		case x: PhaseCommand =>
+			phaseCommands(party, x)
 		case _ =>
 			players(party).close
 	}

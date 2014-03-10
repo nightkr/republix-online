@@ -27,9 +27,8 @@ import javax.swing.event._
 
 object Lobby extends UIPhase {
 
-	def open(model: Model, player: (In[PhaseUpdate], Out[Command]),
-	         party: Party, startParties: Vector[Party])
-	        (state: Map[model.Node, Intensity]): JComponent = new JPanel {
+	def open(model: GameModel, player: (In[PhaseUpdate], Out[Command]),
+	         party: Party, startParties: Vector[Party], state: GameState): JComponent = new JPanel {
 
 		var parties = party +: startParties
 		var listeners = Vector[ListDataListener]()
