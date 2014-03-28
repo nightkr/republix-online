@@ -78,6 +78,9 @@ class Game(clients: In[(In[Command], Out[Update])]) {
 	def feedback(effect: SimEffect) = effect match {
 		case SwitchSimPhase(newPhase) =>
 			switchPhase(newPhase)
+		case Kick(party) =>
+			players(party).close
+			players -= party
 		case LockGame =>
 			clients.close
 	}

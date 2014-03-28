@@ -37,4 +37,5 @@ trait SimPhase {
 
 sealed trait SimEffect
 case class SwitchSimPhase(phase: GamePhase) extends SimEffect
+case class Kick(party: Party) extends SimEffect
 case object LockGame extends SimEffect // prevents people from joining
