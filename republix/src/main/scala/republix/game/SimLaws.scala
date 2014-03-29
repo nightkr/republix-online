@@ -25,7 +25,10 @@ object SimLaws extends SimPhase {
 
 	def sim(model: GameModel, players: => Vector[Party], updates: In[(Party, PhaseCommand)],
 			state: GameState, feedback: SimEffect => Unit): Unit = {
+		
 		updates.listen {
+			case (p, ProposeAmendment(law, intensity)) =>
+
 			case (p, _) =>
 				feedback(Kick(p))
 		}

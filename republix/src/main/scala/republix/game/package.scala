@@ -61,7 +61,33 @@ package object game {
 			Intensity.apply _)
 	implicit val serialOptionIntensity: Serial[Option[Intensity]] = Serial.optionSerial(serialIntensity)
 	implicit val serialNode: Serial[GameNode] = TypeClass[Serial, GameNode]
-	implicit val serialLink: Serial[Link] = TypeClass[Serial, Link]
+	implicit val serialLink: Serial[Link] = new Serial[Link] { // scalac is a buggy mess
+		val sd = doubleSerial
+		val si = serialIntensity
+		def serialize(l: Link) = l match {
+			case LogisticLink(a, b) => ByteString(0.toByte) ++ sd.serialize(a) ++ sd.serialize(b)
+			case LinearLink(a, b) => ByteString(1.toByte) ++ sd.serialize(a) ++ sd.serialize(b)
+			case DiscontinuousLink(a, b, c) => ByteString(2.toByte) ++ si.serialize(a) ++ si.serialize(b) ++ si.serialize(c)
+		}
+		def deserialize(bs: ByteString) = for {
+			(kind, bs1) <- bs.extract
+			res <- kind match {
+				case 0 => for {
+					(a, bs2) <- sd.deserialize(bs1)
+					(b, bs3) <- sd.deserialize(bs2)
+				} yield (LogisticLink(a, b), bs3)
+				case 1 => for {
+					(a, bs2) <- sd.deserialize(bs1)
+					(b, bs3) <- sd.deserialize(bs2)
+				} yield (LinearLink(a, b), bs3)
+				case 2 => for {
+					(a, bs2) <- si.deserialize(bs1)
+					(b, bs3) <- si.deserialize(bs2)
+					(c, bs4) <- si.deserialize(bs3)
+				} yield (DiscontinuousLink(a, b, c), bs4)
+			}
+		} yield res
+	}
 	implicit val serialState: Serial[GameState] = TypeClass[Serial, GameState]
 	implicit val serialModel: Serial[GameModel] = TypeClass[Serial, GameModel]
 	implicit val serialParty: Serial[Party] = TypeClass[Serial, Party]

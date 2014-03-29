@@ -43,13 +43,14 @@ object Laws extends UIPhase {
 	}
 	class NodeVisualizer(node: (GameNode, Intensity), proposeChange: Option[Intensity] => Unit, context: GameState) extends JPanel {
 
-		add(new JLabel(s"${node._1.name} (${node._2.intensity})"))
-
 		object RepealButton extends JButton("Repeal") {
 			addActionListener(on {
 				proposeChange(None)
 			})
 		}
+
+		add(new JLabel(s"${node._1.name} (${node._2.intensity})"))
+		add(RepealButton)
 
 	}
 	
