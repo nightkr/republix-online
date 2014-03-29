@@ -34,8 +34,8 @@ object SimLobby extends SimPhase {
 				else {
 					readyPlayers -= p
 				}
-				println(s"Ready: $readyPlayers")
-				if (readyPlayers.sameElements(players)) {
+				println(s"Ready: $readyPlayers out of $players")
+				if (readyPlayers == players.toSet) {
 					feedback(LockGame)
 					feedback(SwitchSimPhase(LawsPhase()))
 				}
