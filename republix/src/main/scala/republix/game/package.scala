@@ -30,7 +30,8 @@ package object game {
 	sealed trait PhaseCommand extends Command
 	case class Intro(party: String) extends Command
 	case class SendChat(chat: String) extends Command
-	case class ModifyLaw(todo: String) extends PhaseCommand
+	case class SetReady(ready: Boolean) extends PhaseCommand
+	case class ProposeAmendment(law: GameNode, update: Option[Intensity]) extends PhaseCommand
 
 	// game -> client
 	sealed trait Update
@@ -58,8 +59,9 @@ package object game {
 		serialInstance.project(doubleSerial,
 			(x: Intensity) => x.intensity,
 			Intensity.apply _)
-	implicit val serialLink: Serial[Link] = TypeClass[Serial, Link]
+	implicit val serialOptionIntensity: Serial[Option[Intensity]] = Serial.optionSerial(serialIntensity)
 	implicit val serialNode: Serial[GameNode] = TypeClass[Serial, GameNode]
+	implicit val serialLink: Serial[Link] = TypeClass[Serial, Link]
 	implicit val serialState: Serial[GameState] = TypeClass[Serial, GameState]
 	implicit val serialModel: Serial[GameModel] = TypeClass[Serial, GameModel]
 	implicit val serialParty: Serial[Party] = TypeClass[Serial, Party]

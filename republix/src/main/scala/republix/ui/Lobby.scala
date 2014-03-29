@@ -43,7 +43,14 @@ object Lobby extends UIPhase {
 			def getSize = parties.size
 		}
 
-		val partyList = new JList[Party](partyModel)
+		object PartyList extends JList[Party](partyModel) {
+
+		}
+		object ReadyButton extends JCheckBox("Ready?") {
+			addActionListener (on {
+				player._2.send(SetReady(isSelected))
+			})
+		}
 
 		player._1.listen {
 			case NewParty(party) =>
@@ -54,7 +61,8 @@ object Lobby extends UIPhase {
 		}
 
 		add(new JLabel("Lobby"))
-		add(partyList)
+		add(PartyList)
+		add(ReadyButton)
 
 	}
 	// todo: place this somewhere sane

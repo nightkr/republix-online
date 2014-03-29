@@ -23,7 +23,25 @@ import republix.io._
 
 object SimLobby extends SimPhase {
 
-	def sim(model: GameModel, players: Vector[Party], updates: In[(Party, PhaseCommand)],
-			state: GameState, feedback: SimEffect => Unit): Unit = {}
+	def sim(model: GameModel, players: => Vector[Party], updates: In[(Party, PhaseCommand)],
+			state: GameState, feedback: SimEffect => Unit): Unit = {
+		var readyPlayers = Set[Party]()
+		updates.listen {
+			case (p, SetReady(b)) =>
+				if (b) {
+					readyPlayers += p
+				}
+				else {
+					readyPlayers -= p
+				}
+				println(s"Ready: $readyPlayers")
+				if (readyPlayers.sameElements(players)) {
+					feedback(LockGame)
+					feedback(SwitchSimPhase(LawsPhase()))
+				}
+			case (p, _) =>
+				feedback(Kick(p))
+		}
+	}
 
 }

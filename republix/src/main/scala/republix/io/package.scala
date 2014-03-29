@@ -120,6 +120,7 @@ package object io {
 						val elem = queue.poll(1, java.util.concurrent.TimeUnit.SECONDS)
 						if (elem ne null) {
 							os.write(elem.toVector.toArray)
+							os.flush()
 						}
 					}
 				}

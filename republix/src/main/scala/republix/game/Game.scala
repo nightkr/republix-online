@@ -30,10 +30,15 @@ class Game(clients: In[(In[Command], Out[Update])]) {
 	var players: Map[Party, Out[Update]] = Map()
 	var phaseCommands: (Party, PhaseCommand) => Unit = (x, y) => {}
 	var phase: GamePhase = _
-	switchPhase(LobbyPhase())
-	var state = GameState(Map())
+	var state = GameState(Map(
+		GameNode("Income Taxes") -> Intensity(0.5),
+		GameNode("Military Spending") -> Intensity(0.5),
+		GameNode("Crime") -> Intensity(0.5),
+		GameNode("Health") -> Intensity(0.5)))
 
-	val phaseMap: Map[GamePhase, SimPhase] = Map(LobbyPhase() -> SimLobby)
+	val phaseMap: Map[GamePhase, SimPhase] = Map(LobbyPhase() -> SimLobby, LawsPhase() -> SimLaws)
+
+	switchPhase(LobbyPhase())
 
 	import java.util.concurrent.{Executors, ExecutorService}
 	val pool: ExecutorService = Executors.newFixedThreadPool(1)
@@ -73,7 +78,8 @@ class Game(clients: In[(In[Command], Out[Update])]) {
 		players.foreach { player =>
 			player._2.send(SwitchPhase(phase, state))
 		}
-		phaseMap(phase).sim(model, players.keys.toVector, updates, state, feedback _)
+		phaseMap(phase).
+			sim(model, players.keys.toVector, updates, state, feedback _)
 	}
 	def feedback(effect: SimEffect) = effect match {
 		case SwitchSimPhase(newPhase) =>
@@ -85,15 +91,19 @@ class Game(clients: In[(In[Command], Out[Update])]) {
 			clients.close
 	}
 
-	def playerListener(party: Party): Command => Unit = (message: Command) => message match {
-		case SendChat(chat: String) =>
-			players.foreach { player =>
-				player._2.send(Chat(party.name + ": " + chat))
-			}
-		case x: PhaseCommand =>
-			phaseCommands(party, x)
-		case _ =>
-			players(party).close
+	def playerListener(party: Party): Command => Unit = (message: Command) => {
+		println(s"${party.name}: $message")
+		message match {
+			case SendChat(chat: String) =>
+				players.foreach { player =>
+					player._2.send(Chat(party.name + ": " + chat))
+				}
+			case x: PhaseCommand =>
+				phaseCommands(party, x)
+			case _ =>
+				println(s"${party.name} is breaking protocol. Kicking.")
+				players(party).close
+		}
 	}
 
 }

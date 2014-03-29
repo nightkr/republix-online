@@ -22,36 +22,37 @@ package republix.ui
 import republix.game._
 import republix.io._
 import republix.sim._
+import republix.util._
 
 class Client(player: (In[Update], Out[Command]), partyName: String, nav: RepublixNav) {
 
 	player._2.send(Intro(partyName))
 
-	var us: Party = _ // on one hand, ew, on the other, don't want to bother with options
-	var model: GameModel = _
+	val us = uninitialized[Party]
+	val model = uninitialized[GameModel]
 	var parties: Vector[Party] = Vector()
 
 	var phaseUpdates: PhaseUpdate => Unit = x => {}
 
-	val phaseMap: Map[GamePhase, UIPhase] = Map(LobbyPhase() -> Lobby)
+	val phaseMap: Map[GamePhase, UIPhase] = Map(LobbyPhase() -> Lobby, LawsPhase() -> Laws)
 
 	def start(): Unit = {
 		player._1.listen {
 			case IntroModel(gameModel) =>
 				println(s"Model introduced: $gameModel")
-				model = gameModel
+				model.init(gameModel)
 			case NewParty(party) =>
 				println(s"$party joined.")
 				parties :+= party
 				phaseUpdates(NewParty(party))
 			case YouAre(party) =>
 				println(s"I am: $party")
-				us = party
+				us.init(party)
 			case SwitchPhase(newPhase, state) =>
 				println(s"Switching phase to $newPhase")
 				val (updates, produce) = makeIn[PhaseUpdate](() => {})
 				phaseUpdates = produce
-				val comp = phaseMap(newPhase).open(model, (updates, player._2), us, parties, state)
+				val comp = phaseMap(newPhase).open(model(), (updates, player._2), us(), parties, state)
 				nav.switchTo(comp)
 			case Chat(str) =>
 				println(s"Chat: $str")

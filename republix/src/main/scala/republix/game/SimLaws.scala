@@ -19,23 +19,16 @@
 
 package republix.game
 
-import republix.sim._
 import republix.io._
 
-case class GameModel(val links: Map[(GameNode, GameNode), Link]) extends Model {
-	type Node = GameNode
-}
-case class GameNode(name: String)
-case class GameState(intensities: Map[GameNode, Intensity])
-
-trait SimPhase {
+object SimLaws extends SimPhase {
 
 	def sim(model: GameModel, players: => Vector[Party], updates: In[(Party, PhaseCommand)],
-			state: GameState, feedback: SimEffect => Unit): Unit
+			state: GameState, feedback: SimEffect => Unit): Unit = {
+		updates.listen {
+			case (p, _) =>
+				feedback(Kick(p))
+		}
+	}
 
 }
-
-sealed trait SimEffect
-case class SwitchSimPhase(phase: GamePhase) extends SimEffect
-case class Kick(party: Party) extends SimEffect
-case object LockGame extends SimEffect // prevents people from joining

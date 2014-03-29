@@ -26,9 +26,15 @@ object Net {
 	def host(port: Int): In[(In[ByteString], Out[ByteString])] = {
 		val server = new ServerSocket(port)
 		generateIO[(In[ByteString], Out[ByteString])](() => {server.close}) { produce =>
-			while (true) {
-				val socket = server.accept
-				produce((fromInputStream(socket.getInputStream), fromOutputStream(socket.getOutputStream)))
+			try {
+				while (true) {
+					val socket = server.accept
+					produce((fromInputStream(socket.getInputStream), fromOutputStream(socket.getOutputStream)))
+				}
+			}
+			catch {
+				case ex: SocketException =>
+					println(s"No longer accepting connections: ${ex.getMessage}")
 			}
 		}
 	}
