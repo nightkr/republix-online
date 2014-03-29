@@ -20,16 +20,19 @@
 package republix.ui
 
 import javax.swing._
+import republix.config.Configuration
 
 class GameSetup(parent: RepublixNav) extends JPanel {
 
 	private val partyLabel = new JLabel("Party Name:")
-	object PartyField extends JTextField(20) {
+
+  object PartyField extends JTextField(Configuration.get.lastUse.party, 20) {
 		
 	}
 
 	private val portLabel = new JLabel("Port:")
-	object PortField extends JTextField {
+
+  object PortField extends JTextField(Configuration.get.lastUse.port) {
 
 	}
 
@@ -37,6 +40,13 @@ class GameSetup(parent: RepublixNav) extends JPanel {
 		addActionListener(on {
 			import republix.io._
 			import republix.game._
+
+      val c = Configuration.get
+      Configuration.save(c.copy(lastUse = c.lastUse.copy(
+        party = PartyField.getText,
+        port = PortField.getText
+      )))
+
 			val conn = Net.host(PortField.getText.toInt)
 			val players = conn.map { case (in, out) =>
 				(Net.read[Command](in), Net.write[Update](out))
