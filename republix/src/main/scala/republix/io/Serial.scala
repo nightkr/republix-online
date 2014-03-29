@@ -86,7 +86,7 @@ case object Serial extends TypeClassCompanion[Serial] {
 		}
 		def deserialize(bs1: ByteString) = for {
 			(len, bs2) <- intSerial.deserialize(bs1)
-			val (string, rest) = bs2.splitAt(len)
+			(string, rest) = bs2.splitAt(len)
 			if (string.length == len)
 		} yield (string.toString, rest)
 	}
@@ -129,4 +129,8 @@ case object Serial extends TypeClassCompanion[Serial] {
 			if (b == 1.toByte || b == 0.toByte)
 		} yield (b == 1.toByte, bs1)
 	}
+	implicit def setSerial[A](implicit aSerial: Serial[A]): Serial[Set[A]] =
+		serialInstance.project(vectorSerial[A],
+			(s: Set[A]) => s.toVector,
+			(v: Vector[A]) => v.toSet)
 }

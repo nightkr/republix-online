@@ -2,7 +2,6 @@ package republix
 
 package object util {
 
-
 	class Init[A] {
 		private var value: Option[A] = None
 

@@ -38,6 +38,7 @@ object Model {
 
 class Intensity(val intensity: Double) extends AnyVal {
 	def value = Model.intensityToValue(intensity) // value = logit(intensity)
+	override def toString = intensity.toString
 }
 object Intensity {
 	def apply(intensity: Double): Intensity = new Intensity(intensity)

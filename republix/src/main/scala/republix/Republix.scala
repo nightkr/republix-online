@@ -28,7 +28,7 @@ object Republix {
 
 	def main(args: Array[String]) {
 		val frame = new JFrame("Republix")
-		val ui = new RepublixUI()
+		val ui = new RepublixUI(frame)
 		frame.add(ui)
 		frame.setExtendedState(MAXIMIZED_BOTH)
 		frame.setDefaultCloseOperation(EXIT_ON_CLOSE)

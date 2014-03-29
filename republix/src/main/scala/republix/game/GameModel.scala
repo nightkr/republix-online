@@ -22,10 +22,10 @@ package republix.game
 import republix.sim._
 import republix.io._
 
-case class GameModel(val links: Map[(GameNode, GameNode), Link]) extends Model {
+case class GameModel(nodes: Set[GameNode], links: Map[(GameNode, GameNode), Link]) extends Model {
 	type Node = GameNode
 }
-case class GameNode(name: String)
+case class GameNode(name: String, isLaw: Boolean)
 case class GameState(intensities: Map[GameNode, Intensity])
 
 trait SimPhase {

@@ -22,19 +22,15 @@ package republix.game
 import republix.io._
 import republix.sim._
 
-class Game(clients: In[(In[Command], Out[Update])]) {
+class Game(clients: In[(In[Command], Out[Update])], country: Country) {
 
-	val model = GameModel(Map())
+	val model = country.model
 
 	// todo: somehow freeze once games starts
 	var players: Map[Party, Out[Update]] = Map()
 	var phaseCommands: (Party, PhaseCommand) => Unit = (x, y) => {}
 	var phase: GamePhase = _
-	var state = GameState(Map(
-		GameNode("Income Taxes") -> Intensity(0.5),
-		GameNode("Military Spending") -> Intensity(0.5),
-		GameNode("Crime") -> Intensity(0.5),
-		GameNode("Health") -> Intensity(0.5)))
+	var state = country.startingState
 
 	val phaseMap: Map[GamePhase, SimPhase] = Map(LobbyPhase() -> SimLobby, LawsPhase() -> SimLaws)
 
@@ -63,6 +59,7 @@ class Game(clients: In[(In[Command], Out[Update])]) {
 					newPlayer._2.send(IntroModel(model))
 					newPlayer._2.send(YouAre(party))
 					newPlayer._2.send(SwitchPhase(LobbyPhase(), state))
+					newPlayer._2.send(CountryIs(country))
 					newPlayer._1.listen(playerListener(party))
 				}
 			case _ =>

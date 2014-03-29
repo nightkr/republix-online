@@ -27,6 +27,7 @@ import javax.swing._
 trait UIPhase {
 
 	def open(model: GameModel, player: (In[PhaseUpdate], Out[Command]),
-	         party: Party, parties: Vector[Party], state: GameState): JComponent
+	         party: Party, parties: Vector[Party], state: GameState,
+	         nav: UINav): JComponent
 
 }

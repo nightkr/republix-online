@@ -32,6 +32,7 @@ package object game {
 	case class SendChat(chat: String) extends Command
 	case class SetReady(ready: Boolean) extends PhaseCommand
 	case class ProposeAmendment(law: GameNode, update: Option[Intensity]) extends PhaseCommand
+	case class CancelChanges(law: GameNode) extends PhaseCommand
 
 	// game -> client
 	sealed trait Update
@@ -42,6 +43,7 @@ package object game {
 	case class Chat(chat: String) extends GenericUpdate
 	case class SwitchPhase(newPhase: GamePhase, state: GameState) extends GenericUpdate
 	case class NewParty(party: Party) extends PhaseUpdate
+	case class CountryIs(country: Country) extends PhaseUpdate
 
 	// case classes because it works better with shapeless
 	sealed trait GamePhase
@@ -55,6 +57,7 @@ package object game {
 	case class Party(name: String)
 
 	import Serial._
+	implicit val countrySerial: Serial[Country] = TypeClass[Serial, Country]
 	implicit val serialIntensity: Serial[Intensity] =
 		serialInstance.project(doubleSerial,
 			(x: Intensity) => x.intensity,

@@ -28,7 +28,8 @@ import javax.swing.event._
 object Lobby extends UIPhase {
 
 	def open(model: GameModel, player: (In[PhaseUpdate], Out[Command]),
-	         party: Party, startParties: Vector[Party], state: GameState): JComponent = new JPanel {
+	         party: Party, startParties: Vector[Party], state: GameState,
+	         nav: UINav): JComponent = new JPanel {
 
 		var parties = party +: startParties
 		var listeners = Vector[ListDataListener]()
@@ -58,6 +59,8 @@ object Lobby extends UIPhase {
 				for (l <- listeners) {
 					l.intervalAdded(new ListDataEvent(partyModel, ListDataEvent.INTERVAL_ADDED, parties.size, parties.size))
 				}
+			case CountryIs(country) =>
+				// todo: inform player of current country
 		}
 
 		add(new JLabel("Lobby"))

@@ -21,14 +21,19 @@ package republix.ui
 
 import javax.swing._
 
-trait RepublixNav {
+trait UINav {
+
+	def showDialog(comp: JComponent): Unit
+
+}
+trait RepublixNav extends UINav {
 
 	def menu(): Unit
 	def quit(): Unit
 	def switchTo(comp: JComponent): Unit
 
 }
-class RepublixUI extends JPanel { outer =>
+class RepublixUI(frame: JFrame) extends JPanel { outer =>
 
 	import RepublixScreen._
 
@@ -55,6 +60,12 @@ class RepublixUI extends JPanel { outer =>
 			}
 			outer.validate()
 			outer.repaint()
+		}
+		def showDialog(comp: JComponent) = {
+			val dialog = new JDialog(frame)
+			dialog.add(comp)
+			dialog.pack()
+			dialog.setVisible(true)
 		}
 	}
 	class OptionButton(opt: RepublixScreen) extends JButton {

@@ -51,7 +51,7 @@ class GameSetup(parent: RepublixNav) extends JPanel {
 			val players = conn.map { case (in, out) =>
 				(Net.read[Command](in), Net.write[Update](out))
 			}
-			val game = new Game(players)
+			val game = new Game(players, Country.TestCountry)
 			Lobby.join("localhost", PortField.getText.toInt).setReceive { player =>
 				new Client(player, PartyField.getText, parent).start()
 			}

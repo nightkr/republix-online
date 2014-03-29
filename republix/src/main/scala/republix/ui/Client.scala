@@ -52,7 +52,7 @@ class Client(player: (In[Update], Out[Command]), partyName: String, nav: Republi
 				println(s"Switching phase to $newPhase")
 				val (updates, produce) = makeIn[PhaseUpdate](() => {})
 				phaseUpdates = produce
-				val comp = phaseMap(newPhase).open(model(), (updates, player._2), us(), parties, state)
+				val comp = phaseMap(newPhase).open(model(), (updates, player._2), us(), parties, state, nav)
 				nav.switchTo(comp)
 			case Chat(str) =>
 				println(s"Chat: $str")

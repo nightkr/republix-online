@@ -19,33 +19,28 @@
 
 package republix.game
 
-import republix.io._
 import republix.sim._
 
-object SimLaws extends SimPhase {
+case class Country(
+	name: String,
+	model: GameModel,
+	startingState: GameState
+)
 
-	def sim(model: GameModel, players: => Vector[Party], updates: In[(Party, PhaseCommand)],
-			state: GameState, feedback: SimEffect => Unit): Unit = {
-		var proposals = Map[(Party, GameNode), Option[Intensity]]()
+object Country {
 
-		updates.listen {
-			case (p, ProposeAmendment(law, intensity)) =>
-				if (model.nodes.contains(law) && law.isLaw) {
-					proposals += (p, law) -> intensity
-				}
-				else {
-					feedback(Kick(p))
-				}
-			case (p, CancelChanges(law)) =>
-				if (proposals.contains((p, law))) {
-					proposals -= ((p, law))
-				}
-				else {
-					feedback(Kick(p))
-				}
-			case (p, _) =>
-				feedback(Kick(p))
-		}
-	}
+	val TestCountry = Country("The Happy People's Democratic Republic of Hell",
+		GameModel(
+			Set(
+				GameNode("Income Taxes", true), GameNode("Air Taxes", true), GameNode("Tax Taxes", true),
+				GameNode("Health", false), GameNode("Crime", false)),
+			Map()),
+		GameState(
+			Map(
+				GameNode("Income Taxes", true) -> Intensity(0.99), GameNode("Air Taxes", true) -> Intensity(0.5),
+				GameNode("Tax Taxes", true) -> Intensity(0.99),
+				GameNode("Health", false) -> Intensity(0.01), GameNode("Crime", false) -> Intensity(0.99))))
+
+	// todo: write country IO stuff to load and let users choose countries
 
 }
