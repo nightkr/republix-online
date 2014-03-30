@@ -32,6 +32,7 @@ object SimLaws extends SimPhase {
 			case (p, ProposeAmendment(law, intensity)) =>
 				if (model.nodes.contains(law) && law.isLaw) {
 					proposals += (p, law) -> intensity
+					feedback(Broadcast(Proposing(p, law, intensity)))
 				}
 				else {
 					feedback(Kick(p))
@@ -39,6 +40,7 @@ object SimLaws extends SimPhase {
 			case (p, CancelChanges(law)) =>
 				if (proposals.contains((p, law))) {
 					proposals -= ((p, law))
+					feedback(Broadcast(CancelProposing(p, law)))
 				}
 				else {
 					feedback(Kick(p))

@@ -27,59 +27,87 @@ import javax.swing.event._
 
 object Laws extends UIPhase {
 
-	def open(model: GameModel, player: (In[PhaseUpdate], Out[Command]),
+	def open(gameModel: GameModel, player: (In[PhaseUpdate], Out[Command]),
 	         party: Party, parties: Vector[Party], state: GameState,
 	         nav: UINav): JComponent = new JPanel {
 
-		def proposeChange(node: GameNode)(update: Option[Intensity]): Unit = {
+		var proposals = Map[GameNode, Option[Intensity]]()
+
+		def proposeChange(node: GameNode, update: Option[Intensity]): Unit = {
 			player._2.send(ProposeAmendment(node, update))
 		}
 
+		object ProposalsButton extends JButton("Proposals") {
+			addActionListener(on {
+				nav.showDialog(Proposals)
+			})
+		}
+
 		add(new JLabel("Laws"))
+		add(ProposalsButton)
 
 		for (node <- state.intensities) {
-			add(new NodeVisualizer(node, proposeChange(node._1) _, model, state, nav))
+			add(new NodeVisualizer(node))
 		}
 
-	}
-	class NodeVisualizer(node: (GameNode, Intensity), proposeChange: Option[Intensity] => Unit, gameModel: GameModel, context: GameState, nav: UINav) extends JPanel {
-
-		object DetailsButton extends JButton("Details") {
-			addActionListener(on {
-				nav.showDialog(new NodeSettings(node, proposeChange, gameModel, context))
-			})
+		player._1.listen {
+			case Proposing(p, gameNode, update) if p == party =>
+				proposals += ((gameNode, update))
+				Proposals.ProposalList.setListData(proposals.toArray) // todo: sane way of updating this
+			case CancelProposing(p, gameNode) if p == party =>
+				proposals -= gameNode
+				Proposals.ProposalList.setListData(proposals.toArray) // todo: sane way of updating this
+			case _ =>
 		}
 
-		add(new JLabel(s"${node._1.name} (${node._2.intensity})"))
-		add(DetailsButton)
+		object Proposals extends JPanel {
+			
+			object ProposalList extends JList[(GameNode, Option[Intensity])] {
 
-	}
-	class NodeSettings(node: (GameNode, Intensity), proposeChange: Option[Intensity] => Unit, gameModel: GameModel, context: GameState) extends JPanel {
+			}
 
-		object RepealButton extends JButton("Repeal") {
-			addActionListener(on {
-				proposeChange(None)
-			})
-		}
-		object IntensitySlider extends JSlider(SwingConstants.HORIZONTAL, 1, 99, (node._2.intensity*100).toInt min 99 max 1) {
+			add(new JLabel("Proposals"))
+			add(ProposalList)
 
 		}
-		object ProposeButton extends JButton("Propose") {
-			addActionListener(on {
-				proposeChange(Some(Intensity((IntensitySlider.getValue min 99 max 1) / 100.0)))
-			})
+		class NodeVisualizer(node: (GameNode, Intensity)) extends JPanel {
+
+			object DetailsButton extends JButton("Details") {
+				addActionListener(on {
+					nav.showDialog(NodeSettings)
+				})
 		}
+			object RepealButton extends JButton("Repeal") {
+				addActionListener(on {
+					proposeChange(node._1, None)
+				})
+			}
+			object IntensitySlider extends JSlider(SwingConstants.HORIZONTAL, 1, 99, (node._2.intensity*100).toInt min 99 max 1) {
+				def intensity = Intensity((getValue min 99 max 1) / 100.0)
+			}
+			object ProposeButton extends JButton("Propose") {
+				addActionListener(on {
+					proposeChange(node._1, Some(IntensitySlider.intensity))
+				})
+			}
+			object NodeSettings extends JPanel {
 
-		add(new JLabel(s"${node._1.name}"))
-		add(new JLabel(s"Intensity: ${node._2.intensity}"))
-		add(IntensitySlider)
-		add(RepealButton)
-		add(ProposeButton)
+				add(new JLabel(s"${node._1.name}"))
+				add(new JLabel(s"Intensity: ${node._2.intensity}"))
+				add(IntensitySlider)
+				add(RepealButton)
+				add(ProposeButton)
 
-		IntensitySlider.setEnabled(node._1.isLaw)
-		RepealButton.setEnabled(node._1.isLaw)
-		ProposeButton.setEnabled(node._1.isLaw)
+				IntensitySlider.setEnabled(node._1.isLaw)
+				RepealButton.setEnabled(node._1.isLaw)
+				ProposeButton.setEnabled(node._1.isLaw)
 
+			}
+
+			add(new JLabel(s"${node._1.name} (${node._2.intensity})"))
+			add(DetailsButton)
+
+		}
 	}
 	
 }

@@ -84,6 +84,10 @@ class Game(clients: In[(In[Command], Out[Update])], country: Country) {
 		case Kick(party) =>
 			players(party).close
 			players -= party
+		case Broadcast(msg) =>
+			players.foreach { player =>
+				player._2.send(msg)
+			}
 		case LockGame =>
 			clients.close
 	}

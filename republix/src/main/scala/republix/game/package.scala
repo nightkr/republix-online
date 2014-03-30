@@ -44,6 +44,8 @@ package object game {
 	case class SwitchPhase(newPhase: GamePhase, state: GameState) extends GenericUpdate
 	case class NewParty(party: Party) extends PhaseUpdate
 	case class CountryIs(country: Country) extends PhaseUpdate
+	case class Proposing(party: Party, law: GameNode, update: Option[Intensity]) extends PhaseUpdate
+	case class CancelProposing(party: Party, law: GameNode) extends PhaseUpdate
 
 	// case classes because it works better with shapeless
 	sealed trait GamePhase

@@ -20,6 +20,7 @@
 package republix.ui
 
 import javax.swing._
+import java.awt.event._
 
 trait UINav {
 
@@ -46,13 +47,14 @@ class RepublixUI(frame: JFrame) extends JPanel { outer =>
 		}
 	}
 	object Nav extends RepublixNav {
-		def menu() = {
+		var dialogs = Map[JComponent, JDialog]()
+		def menu() = swing {
 			switchTo(TitleScreen)
 		}
 		def quit() = {
 			sys.exit(0) // todo
 		}
-		def switchTo(comp: JComponent) = {
+		def switchTo(comp: JComponent) = swing {
 			for (screen <- currentScreen) {
 				outer.remove(screen)
 				outer.add(comp)
@@ -61,11 +63,24 @@ class RepublixUI(frame: JFrame) extends JPanel { outer =>
 			outer.validate()
 			outer.repaint()
 		}
-		def showDialog(comp: JComponent) = {
-			val dialog = new JDialog(frame)
-			dialog.add(comp)
-			dialog.pack()
-			dialog.setVisible(true)
+		def showDialog(comp: JComponent) = swing {
+			dialogs.get(comp) match {
+				case None =>
+					val dialog = new JDialog(frame)
+					dialog.add(comp)
+					dialog.pack()
+					dialog.setVisible(true)
+					dialog.addWindowListener(new WindowAdapter {
+						override def windowClosed(ev: WindowEvent) {
+							dialog.remove(comp)
+							dialog.dispose()
+							dialogs -= comp
+						}
+					})
+					dialogs += comp -> dialog
+				case Some(dialog) =>
+					dialog.requestFocus()
+			}
 		}
 	}
 	class OptionButton(opt: RepublixScreen) extends JButton {
