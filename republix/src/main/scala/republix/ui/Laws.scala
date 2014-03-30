@@ -42,8 +42,14 @@ object Laws extends UIPhase {
 				nav.showDialog(Proposals)
 			})
 		}
+		object ReadyButton extends JCheckBox("Ready?") {
+			addActionListener (on {
+				player._2.send(SetReady(isSelected))
+			})
+		}
 
 		add(new JLabel("Laws"))
+		add(ReadyButton)
 		add(ProposalsButton)
 
 		for (node <- state.intensities) {
@@ -51,11 +57,8 @@ object Laws extends UIPhase {
 		}
 
 		player._1.listen {
-			case Proposing(p, gameNode, update) if p == party =>
-				proposals += ((gameNode, update))
-				Proposals.ProposalList.setListData(proposals.toArray) // todo: sane way of updating this
-			case CancelProposing(p, gameNode) if p == party =>
-				proposals -= gameNode
+			case SetProposals(newProposals) =>
+				proposals = newProposals.collect { case ((p, law), intensity) if p == party => (law, intensity) }
 				Proposals.ProposalList.setListData(proposals.toArray) // todo: sane way of updating this
 			case _ =>
 		}

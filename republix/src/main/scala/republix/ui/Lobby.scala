@@ -61,6 +61,7 @@ object Lobby extends UIPhase {
 				}
 			case CountryIs(country) =>
 				// todo: inform player of current country
+			case _ => sys.exit(0)
 		}
 
 		add(new JLabel("Lobby"))

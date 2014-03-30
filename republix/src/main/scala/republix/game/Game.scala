@@ -32,7 +32,12 @@ class Game(clients: In[(In[Command], Out[Update])], country: Country) {
 	var phase: GamePhase = _
 	var state = country.startingState
 
-	val phaseMap: Map[GamePhase, SimPhase] = Map(LobbyPhase() -> SimLobby, LawsPhase() -> SimLaws)
+	def simPhase(phase: GamePhase) = phase match {
+		case LobbyPhase() => SimLobby
+		case LawsPhase() => SimLaws
+		case VotePhase(proposals) => new SimVote(proposals)
+		case _ => sys.exit(0)
+	}
 
 	switchPhase(LobbyPhase())
 
@@ -75,8 +80,7 @@ class Game(clients: In[(In[Command], Out[Update])], country: Country) {
 		players.foreach { player =>
 			player._2.send(SwitchPhase(phase, state))
 		}
-		phaseMap(phase).
-			sim(model, players.keys.toVector, updates, state, feedback _)
+		simPhase(phase).sim(model, players.keys.toVector, updates, state, feedback _)
 	}
 	def feedback(effect: SimEffect) = effect match {
 		case SwitchSimPhase(newPhase) =>
@@ -84,9 +88,9 @@ class Game(clients: In[(In[Command], Out[Update])], country: Country) {
 		case Kick(party) =>
 			players(party).close
 			players -= party
-		case Broadcast(msg) =>
-			players.foreach { player =>
-				player._2.send(msg)
+		case UpdateProposals(newProposals) =>
+			players.foreach { p =>
+				p._2.send(SetProposals(newProposals))
 			}
 		case LockGame =>
 			clients.close

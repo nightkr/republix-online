@@ -34,7 +34,12 @@ class Client(player: (In[Update], Out[Command]), partyName: String, nav: Republi
 
 	var phaseUpdates: PhaseUpdate => Unit = x => {}
 
-	val phaseMap: Map[GamePhase, UIPhase] = Map(LobbyPhase() -> Lobby, LawsPhase() -> Laws)
+	def uiPhase(phase: GamePhase) = phase match {
+		case LobbyPhase() => Lobby
+		case LawsPhase() => Laws
+		case VotePhase(proposals) => new Vote(proposals)
+		case _ => sys.exit(0)
+	}
 
 	def start(): Unit = {
 		player._1.listen {
@@ -52,7 +57,7 @@ class Client(player: (In[Update], Out[Command]), partyName: String, nav: Republi
 				println(s"Switching phase to $newPhase")
 				val (updates, produce) = makeIn[PhaseUpdate](() => {})
 				phaseUpdates = produce
-				val comp = phaseMap(newPhase).open(model(), (updates, player._2), us(), parties, state, nav)
+				val comp = uiPhase(newPhase).open(model(), (updates, player._2), us(), parties, state, nav)
 				nav.switchTo(comp)
 			case Chat(str) =>
 				println(s"Chat: $str")

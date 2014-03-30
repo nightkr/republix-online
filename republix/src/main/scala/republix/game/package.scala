@@ -33,6 +33,7 @@ package object game {
 	case class SetReady(ready: Boolean) extends PhaseCommand
 	case class ProposeAmendment(law: GameNode, update: Option[Intensity]) extends PhaseCommand
 	case class CancelChanges(law: GameNode) extends PhaseCommand
+	case class VoteFor(proposer: Party) extends PhaseCommand
 
 	// game -> client
 	sealed trait Update
@@ -44,15 +45,14 @@ package object game {
 	case class SwitchPhase(newPhase: GamePhase, state: GameState) extends GenericUpdate
 	case class NewParty(party: Party) extends PhaseUpdate
 	case class CountryIs(country: Country) extends PhaseUpdate
-	case class Proposing(party: Party, law: GameNode, update: Option[Intensity]) extends PhaseUpdate
-	case class CancelProposing(party: Party, law: GameNode) extends PhaseUpdate
+	case class SetProposals(proposals: Map[(Party, GameNode), Option[Intensity]]) extends PhaseUpdate
 
 	// case classes because it works better with shapeless
 	sealed trait GamePhase
 	case class NewsPhase() extends GamePhase
 	case class LobbyPhase() extends GamePhase
 	case class LawsPhase() extends GamePhase
-	case class VotePhase() extends GamePhase
+	case class VotePhase(proposals: Map[(Party, GameNode), Option[Intensity]]) extends GamePhase
 	case class ElectionPhase() extends GamePhase
 
 	// todo: use id along with name

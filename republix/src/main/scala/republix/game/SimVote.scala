@@ -22,43 +22,16 @@ package republix.game
 import republix.io._
 import republix.sim._
 
-object SimLaws extends SimPhase {
+class SimVote(proposals: Map[(Party, GameNode), Option[Intensity]]) extends SimPhase{
 
 	def sim(model: GameModel, players: => Vector[Party], updates: In[(Party, PhaseCommand)],
 			state: GameState, feedback: SimEffect => Unit): Unit = {
-		var proposals = Map[(Party, GameNode), Option[Intensity]]()
-		var readyPlayers = Set[Party]()
+		var votes = Map[Party, Party]()
 		updates.listen {
-			case (p, ProposeAmendment(law, intensity)) =>
-				if (model.nodes.contains(law) && law.isLaw) {
-					proposals += (p, law) -> intensity
-					feedback(UpdateProposals(proposals))
-				}
-				else {
-					feedback(Kick(p))
-				}
-			case (p, CancelChanges(law)) =>
-				if (proposals.contains((p, law))) {
-					proposals -= ((p, law))
-					feedback(UpdateProposals(proposals))
-				}
-				else {
-					feedback(Kick(p))
-				}
-			case (p, SetReady(b)) =>
-				if (b) {
-					readyPlayers += p
-				}
-				else {
-					readyPlayers -= p
-				}
-				println(s"Ready: $readyPlayers out of $players")
-				if (readyPlayers == players.toSet) {
-					feedback(SwitchSimPhase(VotePhase(proposals)))
-				}
+			case (p, VoteFor(proposer)) =>
+				votes += p -> proposer
 			case (p, _) =>
 				feedback(Kick(p))
 		}
 	}
-
 }
